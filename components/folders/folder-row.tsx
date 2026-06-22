@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { useFolders } from "@/hooks/use-folders";
 import { FolderActions } from "./folder-actions";
@@ -11,9 +12,11 @@ interface Props {
   row: FolderRowData;
   variant?: "sidebar" | "picker";
   onPick?: () => void;
+  /** Precomputed subtree count from the parent's one-pass map (sidebar tree). */
+  count?: number;
 }
 
-export function FolderRow({ row, variant = "sidebar", onPick }: Props) {
+function FolderRowInner({ row, variant = "sidebar", onPick, count }: Props) {
   const {
     selectedFilter,
     editing,
@@ -25,7 +28,9 @@ export function FolderRow({ row, variant = "sidebar", onPick }: Props) {
   const isActive =
     selectedFilter.kind === "subtree" && selectedFilter.id === folder.id;
   const isEditing = editing.id === folder.id && editing.mode === "rename";
-  const count = subtreeBookmarkCount(folder.id);
+  // Use the parent-provided count when available; fall back to the per-row
+  // computation only for callers that don't pass it (e.g. the folder picker).
+  const subtreeCount = count ?? subtreeBookmarkCount(folder.id);
 
   return (
     <motion.div
@@ -95,9 +100,9 @@ export function FolderRow({ row, variant = "sidebar", onPick }: Props) {
           <span className="flex-1 truncate">{folder.name}</span>
         )}
 
-        {!isEditing && count > 0 && (
+        {!isEditing && subtreeCount > 0 && (
           <span className="text-foreground-subtle text-xs tabular-nums">
-            {count}
+            {subtreeCount}
           </span>
         )}
 
@@ -110,3 +115,5 @@ export function FolderRow({ row, variant = "sidebar", onPick }: Props) {
     </motion.div>
   );
 }
+
+export const FolderRow = memo(FolderRowInner);

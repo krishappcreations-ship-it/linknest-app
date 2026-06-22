@@ -41,6 +41,12 @@ export function SortableBookmarkCard(props: Props) {
     // (Was "none", which blocked all scrolling on mobile — every touch hits a
     // card.) Revises ADR-006 §Consequences for the mobile scroll fix.
     touchAction: "pan-y",
+    // Virtualization-lite: the browser skips layout/paint for off-screen cards,
+    // so hundreds of bookmarks scroll smoothly. contain-intrinsic-size reserves
+    // an approximate height so the scrollbar stays stable. Not while dragging
+    // (a dragged card must always render).
+    contentVisibility: isDragging ? "visible" : "auto",
+    containIntrinsicSize: "auto 320px",
   };
 
   return (

@@ -8,9 +8,10 @@ import type { FolderRow as FolderRowData } from "@/store/slices/folders-slice";
 
 interface Props {
   row: FolderRowData;
+  count?: number;
 }
 
-export function SortableFolderRow({ row }: Props) {
+export function SortableFolderRow({ row, count }: Props) {
   const {
     attributes,
     listeners,
@@ -30,14 +31,14 @@ export function SortableFolderRow({ row }: Props) {
       : "scale 150ms ease-out, opacity 150ms ease-out",
     opacity: isDragging ? 0.5 : 1,
     scale: isDragging ? 0.97 : undefined,
-    // touch-action: none blocks iOS native context menu on long-press inside
-    // the row. Traded for drag clarity per ADR-006 §Consequences.
-    touchAction: "none",
+    // pan-y so the drawer's folder list scrolls smoothly on touch; long-press
+    // (TouchSensor delay) still starts a drag.
+    touchAction: "pan-y",
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <FolderRow row={row} />
+      <FolderRow row={row} count={count} />
     </div>
   );
 }

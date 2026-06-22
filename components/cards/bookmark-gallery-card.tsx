@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { duration, ease, spring } from "@/app/styles/motion";
 import { useStore } from "@/store";
@@ -34,7 +34,7 @@ function relativeTime(ts: number): string {
   return `${weeks}w ago`;
 }
 
-export function BookmarkGalleryCard({
+function BookmarkGalleryCardInner({
   bookmark,
   isSelected,
   isFocused,
@@ -151,3 +151,5 @@ export function BookmarkGalleryCard({
     </motion.article>
   );
 }
+
+export const BookmarkGalleryCard = memo(BookmarkGalleryCardInner);

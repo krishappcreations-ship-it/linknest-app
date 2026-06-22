@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { duration, ease, keyframes, spring } from "@/app/styles/motion";
 import { FaviconFallback } from "./favicon-fallback";
@@ -59,7 +59,7 @@ function PdfPreviewGlyph() {
   );
 }
 
-export function BookmarkCard({
+function BookmarkCardInner({
   bookmark,
   isSelected,
   isFocused,
@@ -89,10 +89,12 @@ export function BookmarkCard({
   const visibleChips = tagsForCard.slice(0, 3);
   const overflow = tagsForCard.length - visibleChips.length;
 
-  const embeddingById = useStore((s) => s.embeddingById);
+  // Compute the similar-count lazily from a getState read instead of subscribing
+  // to the whole embeddingById map — a live subscription re-rendered EVERY card
+  // each time an embedding streamed in during hydration (a 285-card storm).
   const similarCount = useMemo(
-    () => findSimilar(bookmark.id, embeddingById).length,
-    [bookmark.id, embeddingById]
+    () => findSimilar(bookmark.id, useStore.getState().embeddingById).length,
+    [bookmark.id]
   );
 
   const { dataUrl: snapshotUrl, setRef: setSnapshotRef } =
@@ -489,3 +491,10 @@ export function BookmarkCard({
     </motion.article>
   );
 }
+
+/**
+ * Memoized: with stable props (per-id onToggle from the grid) a card only
+ * re-renders when its own bookmark/selection/focus changes — not when another
+ * card is selected.
+ */
+export const BookmarkCard = memo(BookmarkCardInner);

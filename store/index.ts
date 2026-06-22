@@ -418,7 +418,10 @@ export async function hydrateFromDexie(): Promise<void> {
   if (typeof window !== "undefined" && !previewWorkerMounted()) {
     mountPreviewWorker({ fetchPreview: postPreview });
   }
-  previewWorker().kick();
+  // Previews are fetched viewport-first (each card enqueues itself when it
+  // scrolls into view — see use-bookmark-snapshot). We intentionally do NOT
+  // kick() the whole pending set on hydration: with hundreds of bookmarks that
+  // produced a request storm + rate-limit thrash and a slow initial load.
 
   // Capture worker — F23. Same mount discipline as the preview worker.
   if (typeof window !== "undefined" && !captureWorkerMounted()) {
@@ -427,10 +430,17 @@ export async function hydrateFromDexie(): Promise<void> {
   captureWorker().kick();
 
   // Embed worker — F28. Same mount discipline. Real Transformers.js embedder.
+  // Defer to idle so the on-main-thread embedding pass doesn't block first paint
+  // / scrolling right after hydration (semantic search just becomes ready a
+  // moment later).
   if (typeof window !== "undefined" && !embedWorkerMounted()) {
     mountEmbedWorker({ embed });
   }
-  embedWorker().kick();
+  if (typeof requestIdleCallback !== "undefined") {
+    requestIdleCallback(() => embedWorker().kick());
+  } else {
+    setTimeout(() => embedWorker().kick(), 0);
+  }
 
   // Mount cloud sync runtime if env vars present. Fire-and-forget.
   // Dynamic import avoids pulling supabase into SSR bundle.

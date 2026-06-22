@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/store";
 import { generateSnapshot } from "@/lib/snapshot/generate";
 import { getSupabaseClient } from "@/lib/sync/supabase-client";
+import { previewWorker } from "@/store/preview-worker";
 import type { Bookmark } from "@/types";
 
 export function shouldGenerateSnapshot(
@@ -81,6 +82,25 @@ export function useBookmarkSnapshot(bookmark: Bookmark): BookmarkSnapshot {
   }, []);
 
   useEffect(() => () => observerRef.current?.disconnect(), []);
+
+  // Viewport-first link previews: when a link card scrolls into view and still
+  // needs an og:image, enqueue its fetch. Replaces the hydration-time blast of
+  // all pending bookmarks (request storm + rate-limit thrash). enqueue() is
+  // idempotent, and the observer only flips `visible` to true once.
+  useEffect(() => {
+    if (!visible) return;
+    const k = bookmark.kind;
+    if (k === "image" || k === "pdf" || k === "prompt") return;
+    if (bookmark.previewStatus === "ready" || bookmark.previewImageUrl != null)
+      return;
+    previewWorker().enqueue(bookmark.id);
+  }, [
+    visible,
+    bookmark.id,
+    bookmark.kind,
+    bookmark.previewStatus,
+    bookmark.previewImageUrl,
+  ]);
 
   const { id, title, description, domain, previewImageUrl, kind, assetPath } =
     bookmark;

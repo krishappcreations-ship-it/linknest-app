@@ -11,7 +11,7 @@ const RequestSchema = z.object({
   url: z.string().url().max(2048),
 });
 
-const PREVIEW_LIMIT = { windowMs: 60_000, max: 20 };
+const PREVIEW_LIMIT = { windowMs: 60_000, max: 60 };
 
 const BAD_REQUEST: PreviewResponse = {
   ok: false,

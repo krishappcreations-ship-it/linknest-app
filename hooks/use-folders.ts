@@ -36,8 +36,32 @@ import {
 import {
   selectVisibleBookmarks,
   type SelectedFolderFilter,
+  type BookmarksState,
 } from "@/store/slices/bookmarks-slice";
+import type { FoldersState } from "@/store/slices/folders-slice";
 import type { Folder, FolderId } from "@/types";
+
+/**
+ * Subtree bookmark counts for ALL folders in a single pass — replaces the
+ * per-row O(bookmarks) `subtreeBookmarkCount` that made the folder list janky to
+ * scroll. Each non-prompt bookmark increments its folder and every ancestor.
+ * O(bookmarks × depth ≤ 3).
+ */
+export function selectSubtreeCounts(
+  folders: FoldersState,
+  bookmarks: BookmarksState
+): Map<FolderId, number> {
+  const counts = new Map<FolderId, number>();
+  for (const b of selectVisibleBookmarks(bookmarks)) {
+    if (b.folderId === null || b.kind === "prompt") continue;
+    let fid: FolderId | null = b.folderId;
+    while (fid) {
+      counts.set(fid, (counts.get(fid) ?? 0) + 1);
+      fid = folders.byId[fid]?.parentId ?? null;
+    }
+  }
+  return counts;
+}
 
 interface InjectableFolderContext {
   now?: () => number;

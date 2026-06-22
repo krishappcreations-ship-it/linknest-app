@@ -4,7 +4,7 @@ A fast, visual bookmark manager for the web — save links, images, PDFs, and pr
 
 **Live:** https://linknest-inky.vercel.app
 
-> _Tip: add a screenshot or GIF here (e.g. `docs/screenshot.png`) — it makes the repo._
+![LinkNest screenshot](docs/screenshot.png)
 
 ---
 

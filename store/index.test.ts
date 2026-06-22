@@ -50,7 +50,7 @@ beforeEach(() => {
 });
 
 describe("hydrateFromDexie + worker mount", () => {
-  it("hydrates from adapter and kicks the worker for pending rows", async () => {
+  it("hydrates without blasting previews (viewport-first); enqueue still fetches", async () => {
     const adapter = memoryBookmarksAdapter();
     const b = buildBookmark(
       { url: "https://x.test/" },
@@ -72,7 +72,15 @@ describe("hydrateFromDexie + worker mount", () => {
     await hydrateFromDexie();
     expect(useStore.getState().hydrated).toBe(true);
     expect(useStore.getState().bookmarks.byId[b.id]).toBeDefined();
-    // Worker should have been kicked and the bookmark should head to ready.
+    // Hydration must NOT auto-fetch all pending previews — cards enqueue
+    // themselves as they scroll into view (viewport-first).
+    expect(fetchPreview).not.toHaveBeenCalled();
+    expect(useStore.getState().bookmarks.byId[b.id]!.previewStatus).toBe(
+      "pending"
+    );
+
+    // The viewport observer enqueues a visible card → it heads to ready.
+    previewWorker().enqueue(b.id);
     await vi.waitFor(() =>
       expect(useStore.getState().bookmarks.byId[b.id]!.previewStatus).toBe(
         "ready"

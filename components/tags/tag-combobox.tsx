@@ -86,7 +86,10 @@ export function TagCombobox({ value, onChange }: Props) {
           placeholder="Search or create tag"
           className="border-border bg-background text-foreground focus:border-accent-blue mb-1 w-full rounded-sm border px-2 py-1 text-sm outline-none"
         />
-        <div className="max-h-48 overflow-y-auto">
+        <div
+          className="max-h-48 overflow-y-auto overscroll-contain"
+          style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+        >
           {suggestions.map((t) => (
             <button
               key={t.id}

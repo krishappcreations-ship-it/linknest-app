@@ -498,25 +498,32 @@ export function getUseBookmarksApi(ctx: InjectableContext = {}): UseBookmarks {
         }));
         return 0;
       }
-      for (const id of ids) {
-        const cur = selectBookmarkById(readBookmarks(), id);
-        if (!cur || cur.deletedAt !== null) continue;
-        const { next } = bumpPreviewAttempt(readBookmarks(), id, now());
-        const updated = next.byId[id];
-        if (!updated) continue;
-        try {
-          await adapter().put(updated);
-        } catch {
-          continue;
-        }
-        useStore.setState({ bookmarks: next });
-        try {
-          await useStore.getState().previewCacheAdapter.delete(cur.url);
-        } catch {
-          // Non-fatal — worker refetches on missing cache row.
-        }
-        previewWorker().enqueue(id);
-      }
+      // Batch: bump all attempts into ONE state update, then run the IndexedDB
+      // puts + cache-row deletes in parallel (was serial awaits → seconds of
+      // blocking on large libraries). The viewport-first worker + raised rate
+      // limit then refetch them.
+      const targets = ids
+        .map((id) => selectBookmarkById(readBookmarks(), id))
+        .filter((b): b is NonNullable<typeof b> => !!b && b.deletedAt === null);
+      let next = readBookmarks();
+      for (const b of targets)
+        next = bumpPreviewAttempt(next, b.id, now()).next;
+      useStore.setState({ bookmarks: next });
+      const cacheAdapter = useStore.getState().previewCacheAdapter;
+      await Promise.all(
+        targets.flatMap((b) => {
+          const updated = next.byId[b.id];
+          return [
+            updated
+              ? adapter()
+                  .put(updated)
+                  .catch(() => {})
+              : Promise.resolve(),
+            cacheAdapter.delete(b.url).catch(() => {}),
+          ];
+        })
+      );
+      for (const b of targets) previewWorker().enqueue(b.id);
       useStore.setState((s) => ({
         ui: pushToast(s.ui, {
           tone: "info",

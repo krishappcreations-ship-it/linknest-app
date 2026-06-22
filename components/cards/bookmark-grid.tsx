@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { duration, ease, stagger } from "@/app/styles/motion";
 import {
@@ -25,7 +25,7 @@ import { selectFolderSubtreeIds } from "@/store/slices/folders-slice";
 import { matchesRules } from "@/lib/collections/evaluate-rules";
 import { setSimilarTo } from "@/store/slices/ui-slice";
 import { findSimilar } from "@/lib/dedupe/similar";
-import type { FolderId } from "@/types";
+import type { BookmarkId, FolderId } from "@/types";
 
 /**
  * Grid orchestrator — feature 01 + 07.
@@ -40,6 +40,22 @@ import type { FolderId } from "@/types";
 export function BookmarkGrid() {
   const { count, selection, focusBookmarkId, toggle, focusBookmark } =
     useBookmarks();
+  // Stable per-id toggle callbacks so React.memo'd cards don't re-render when an
+  // unrelated card's selection changes. `toggle` is recreated each render, so we
+  // route through a ref and cache one callback per bookmark id.
+  const toggleRef = useRef(toggle);
+  toggleRef.current = toggle;
+  const toggleCbs = useRef(
+    new Map<BookmarkId, (m: "single" | "range") => void>()
+  );
+  const getToggle = useCallback((id: BookmarkId) => {
+    let cb = toggleCbs.current.get(id);
+    if (!cb) {
+      cb = (m) => toggleRef.current(id, m);
+      toggleCbs.current.set(id, cb);
+    }
+    return cb;
+  }, []);
   const bookmarksState = useStore((s) => s.bookmarks);
   const foldersState = useStore((s) => s.folders);
   const filter = useStore((s) => s.ui.selectedFolderFilter);
@@ -204,7 +220,7 @@ export function BookmarkGrid() {
                     bookmark={b}
                     isSelected={selection.includes(b.id)}
                     isFocused={focusBookmarkId === b.id}
-                    onToggle={(mod) => toggle(b.id, mod)}
+                    onToggle={getToggle(b.id)}
                   />
                 </motion.div>
               ))}
@@ -231,7 +247,7 @@ export function BookmarkGrid() {
                   bookmark={b}
                   isSelected={selection.includes(b.id)}
                   isFocused={focusBookmarkId === b.id}
-                  onToggle={(mod) => toggle(b.id, mod)}
+                  onToggle={getToggle(b.id)}
                 />
               ))}
             </SortableContext>
@@ -254,7 +270,7 @@ export function BookmarkGrid() {
                   bookmark={b}
                   isSelected={selection.includes(b.id)}
                   isFocused={focusBookmarkId === b.id}
-                  onToggle={(mod) => toggle(b.id, mod)}
+                  onToggle={getToggle(b.id)}
                 />
               ))}
             </SortableContext>

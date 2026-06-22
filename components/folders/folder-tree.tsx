@@ -1,16 +1,25 @@
 "use client";
 
+import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useFolders } from "@/hooks/use-folders";
+import { useFolders, selectSubtreeCounts } from "@/hooks/use-folders";
+import { useStore } from "@/store";
 import { SortableFolderRow } from "./sortable-folder-row";
 import { FolderRowEditor } from "./folder-row-editor";
 
 export function FolderTree() {
   const { rows, editing } = useFolders();
+  // One-pass subtree counts shared by every row (was O(bookmarks) per row).
+  const foldersState = useStore((s) => s.folders);
+  const bookmarksState = useStore((s) => s.bookmarks);
+  const counts = useMemo(
+    () => selectSubtreeCounts(foldersState, bookmarksState),
+    [foldersState, bookmarksState]
+  );
   return (
     <div className="flex flex-col gap-0.5">
       <SortableContext
@@ -19,7 +28,11 @@ export function FolderTree() {
       >
         <AnimatePresence initial={false}>
           {rows.map((row) => (
-            <SortableFolderRow key={row.folder.id} row={row} />
+            <SortableFolderRow
+              key={row.folder.id}
+              row={row}
+              count={counts.get(row.folder.id) ?? 0}
+            />
           ))}
         </AnimatePresence>
       </SortableContext>

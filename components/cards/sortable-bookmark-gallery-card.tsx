@@ -32,6 +32,9 @@ export function SortableBookmarkGalleryCard(props: Props) {
     scale: isDragging ? 0.97 : undefined,
     // pan-y so the page scrolls on touch; long-press (TouchSensor delay) drags.
     touchAction: "pan-y",
+    // Off-screen cards skip layout/paint (smooth at hundreds of items).
+    contentVisibility: isDragging ? "visible" : "auto",
+    containIntrinsicSize: "auto 360px",
   };
 
   return (

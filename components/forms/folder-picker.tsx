@@ -42,47 +42,50 @@ export function FolderPicker({ value, onChange }: Props) {
           </svg>
         </button>
       </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          align="start"
-          sideOffset={4}
-          className="border-border bg-surface z-50 max-h-72 w-64 overflow-y-auto overscroll-contain rounded-md border p-1 shadow-lg"
-          // Radix sets touch-action that kills momentum scroll; restore it so the
-          // folder list can be flicked to the bottom on touch/trackpad.
-          style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
-          onWheel={(e) => e.stopPropagation()}
+      {/*
+        No Popover.Portal: the picker is opened from inside a Radix Dialog, whose
+        RemoveScroll only permits scrolling within the dialog's DOM subtree. A
+        portaled popover lands on <body> (outside that subtree) and its touch
+        scroll is blocked. Rendering inline keeps it inside the dialog so the
+        folder list scrolls. touch-action: pan-y restores momentum scroll.
+      */}
+      <Popover.Content
+        align="start"
+        sideOffset={4}
+        className="border-border bg-surface z-50 max-h-72 w-64 overflow-y-auto overscroll-contain rounded-md border p-1 shadow-lg"
+        style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+        onWheel={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            onChange(null);
+            setOpen(false);
+          }}
+          data-active={value === null || undefined}
+          className="data-[active=true]:bg-surface-elevated data-[active=true]:text-foreground hover:bg-surface-hover text-foreground-muted flex w-full items-center rounded-md px-2 py-1 text-left text-sm transition-colors"
         >
+          Root
+        </button>
+        {pickerRows.map((row) => (
           <button
+            key={row.folder.id}
             type="button"
             onClick={() => {
-              onChange(null);
+              onChange(row.folder.id);
               setOpen(false);
             }}
-            data-active={value === null || undefined}
-            className="data-[active=true]:bg-surface-elevated data-[active=true]:text-foreground hover:bg-surface-hover text-foreground-muted flex w-full items-center rounded-md px-2 py-1 text-left text-sm transition-colors"
+            data-active={value === row.folder.id || undefined}
+            className="data-[active=true]:bg-surface-elevated data-[active=true]:text-foreground hover:bg-surface-hover text-foreground-muted flex w-full items-center rounded-md py-1 text-left text-sm transition-colors"
+            style={{
+              paddingLeft: `${8 + row.depth * 14}px`,
+              paddingRight: "8px",
+            }}
           >
-            Root
+            <span className="truncate">{row.folder.name}</span>
           </button>
-          {pickerRows.map((row) => (
-            <button
-              key={row.folder.id}
-              type="button"
-              onClick={() => {
-                onChange(row.folder.id);
-                setOpen(false);
-              }}
-              data-active={value === row.folder.id || undefined}
-              className="data-[active=true]:bg-surface-elevated data-[active=true]:text-foreground hover:bg-surface-hover text-foreground-muted flex w-full items-center rounded-md py-1 text-left text-sm transition-colors"
-              style={{
-                paddingLeft: `${8 + row.depth * 14}px`,
-                paddingRight: "8px",
-              }}
-            >
-              <span className="truncate">{row.folder.name}</span>
-            </button>
-          ))}
-        </Popover.Content>
-      </Popover.Portal>
+        ))}
+      </Popover.Content>
     </Popover.Root>
   );
 }

@@ -31,6 +31,9 @@ export function SortableBookmarkRow(props: Props) {
     opacity: isDragging ? 0.5 : 1,
     // pan-y so the page scrolls on touch; long-press (TouchSensor delay) drags.
     touchAction: "pan-y",
+    // Off-screen rows skip layout/paint (smooth at hundreds of items).
+    contentVisibility: isDragging ? "visible" : "auto",
+    containIntrinsicSize: "auto 48px",
   };
 
   return (

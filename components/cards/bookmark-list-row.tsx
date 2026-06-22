@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useStore } from "@/store";
 import { openEditDialog } from "@/store/slices/ui-slice";
 import { selectTagsByIds } from "@/store/slices/tags-slice";
@@ -30,7 +30,7 @@ function relativeTime(ts: number): string {
   return `${weeks}w`;
 }
 
-export function BookmarkListRow({
+function BookmarkListRowInner({
   bookmark,
   isSelected,
   isFocused,
@@ -94,3 +94,5 @@ export function BookmarkListRow({
     </div>
   );
 }
+
+export const BookmarkListRow = memo(BookmarkListRowInner);

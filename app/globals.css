@@ -1,0 +1,310 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Override Tailwind v4 built-in hover: variant to gate on real hover support.
+ * Prevents sticky-hover on touch devices. Every hover:* class across the
+ * codebase inherits this MQ wrap — zero call-site changes. See ADR-005.
+ */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+/* ---------- LinkNest Design System (Tailwind v4 CSS-first config) ----------
+ * Single source of truth for color / typography / spacing tokens.
+ * See ADR-005 (Design Principles) for rationale + anti-slop checklist.
+ *
+ * Rules:
+ *   - No hex outside this file. No raw RGB.
+ *   - Tag palette = 8 swatches only (no freeform user picks).
+ *   - max-w-[1400px] mx-auto for layout containers.
+ *   - min-h-[100dvh], not h-screen.
+ */
+
+/* ---------- Base CSS variables (dark = default) ---------- */
+
+:root {
+  /* Surfaces */
+  --background: oklch(0.13 0.012 264); /* zinc-950 */
+  --surface: oklch(0.17 0.013 264); /* zinc-900 */
+  --surface-elevated: oklch(0.21 0.013 264); /* zinc-800 */
+  --surface-hover: oklch(0.27 0.013 264); /* zinc-700 */
+
+  /* Text */
+  --foreground: oklch(0.97 0.005 264); /* zinc-50 */
+  --foreground-muted: oklch(0.72 0.011 264); /* zinc-400 */
+  --foreground-subtle: oklch(0.55 0.012 264); /* zinc-500 */
+
+  /* Borders */
+  --border: oklch(0.21 0.013 264 / 0.6);
+  --border-strong: oklch(0.27 0.013 264);
+
+  /* Skeleton / shimmer (loading previews) — theme-aware */
+  --skeleton-base: oklch(0.21 0.013 264);
+  --skeleton-sheen: oklch(0.27 0.013 264);
+
+  /* Accents (per ADR-005) */
+  --accent-cyan: oklch(0.78 0.13 215);
+  --accent-blue: oklch(0.66 0.18 256);
+  --accent-orange: oklch(0.77 0.16 60);
+
+  /* Focus */
+  --focus-ring: oklch(0.66 0.18 256 / 0.6);
+  --focus-ring-offset: var(--background);
+
+  /* Tag palette (curated 8) — see ADR-005 */
+  --tag-cyan: oklch(0.78 0.13 215);
+  --tag-blue: oklch(0.66 0.18 256);
+  --tag-orange: oklch(0.77 0.16 60);
+  --tag-emerald: oklch(0.74 0.16 152);
+  --tag-violet: oklch(0.71 0.17 296);
+  --tag-rose: oklch(0.72 0.18 12);
+  --tag-amber: oklch(0.83 0.14 88);
+  --tag-zinc: oklch(0.72 0.011 264);
+}
+
+/* Light mode override — explicit, not media-query auto */
+:root[data-theme="light"] {
+  --background: oklch(0.98 0.003 264); /* stone-100 */
+  --surface: oklch(0.95 0.004 264);
+  --surface-elevated: oklch(0.92 0.005 264);
+  --surface-hover: oklch(0.88 0.006 264);
+
+  --foreground: oklch(0.21 0.013 264);
+  --foreground-muted: oklch(0.45 0.012 264);
+  --foreground-subtle: oklch(0.6 0.011 264);
+
+  --border: oklch(0.88 0.006 264 / 0.7);
+  --border-strong: oklch(0.78 0.008 264);
+
+  --skeleton-base: oklch(0.92 0.005 264);
+  --skeleton-sheen: oklch(0.97 0.003 264);
+}
+
+/* ---------- Tailwind v4 theme bridge ----------
+ * Exposes the variables above as Tailwind utilities:
+ *   bg-background, text-foreground, border-border, etc.
+ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-orange: var(--accent-orange);
+
+  --color-tag-cyan: var(--tag-cyan);
+  --color-tag-blue: var(--tag-blue);
+  --color-tag-orange: var(--tag-orange);
+  --color-tag-emerald: var(--tag-emerald);
+  --color-tag-violet: var(--tag-violet);
+  --color-tag-rose: var(--tag-rose);
+  --color-tag-amber: var(--tag-amber);
+  --color-tag-zinc: var(--tag-zinc);
+
+  /* Semantic tone tokens — alias tag palette for status indicators (F19) */
+  --color-tone-success: var(--tag-emerald);
+  --color-tone-warn: var(--tag-amber);
+  --color-tone-error: var(--tag-rose);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Radii — capped at xl per ADR-005 anti-slop */
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+/* ---------- Base element styling ---------- */
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-blue);
+  color: var(--background);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Reduced motion — global guard */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Reader Mode (feature 24) ---------- */
+.reader-prose {
+  --reader-measure: 42rem;
+  max-width: var(--reader-measure);
+  color: var(--foreground);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.reader-prose[data-width="narrow"] {
+  --reader-measure: 34rem;
+}
+.reader-prose[data-width="normal"] {
+  --reader-measure: 42rem;
+}
+.reader-prose[data-width="wide"] {
+  --reader-measure: 52rem;
+}
+.reader-prose[data-size="s"] {
+  font-size: 0.9375rem;
+}
+.reader-prose[data-size="m"] {
+  font-size: 1.0625rem;
+}
+.reader-prose[data-size="l"] {
+  font-size: 1.1875rem;
+}
+.reader-prose[data-family="serif"] {
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+}
+.reader-prose[data-family="sans"] {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+.reader-header {
+  margin-bottom: 2rem;
+}
+.reader-prose h1 {
+  font-size: 1.9em;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+.reader-meta {
+  color: var(--foreground-subtle);
+  font-size: 0.8125rem;
+}
+.reader-prose h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.reader-prose h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.reader-prose p,
+.reader-prose ul,
+.reader-prose ol,
+.reader-prose blockquote {
+  margin-bottom: 1.15rem;
+}
+.reader-prose ul,
+.reader-prose ol {
+  padding-left: 1.5rem;
+}
+.reader-prose li {
+  margin-bottom: 0.35rem;
+}
+.reader-prose a {
+  color: var(--accent-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.reader-prose blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding-left: 1rem;
+  color: var(--foreground-muted);
+  font-style: italic;
+}
+.reader-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+}
+.reader-prose pre {
+  background: var(--surface-elevated);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.875em;
+  margin-bottom: 1.15rem;
+}
+.reader-prose code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875em;
+}
+
+/* F30 highlights — background-tint only (zero layout shift), text inherits. */
+.reader-prose mark[data-hl-id] {
+  background-color: transparent;
+  color: inherit;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 100ms ease-out;
+}
+.reader-prose mark[data-hl-id][data-color="yellow"] {
+  background-color: rgba(250, 204, 21, 0.32);
+}
+.reader-prose mark[data-hl-id][data-color="green"] {
+  background-color: rgba(74, 222, 128, 0.3);
+}
+.reader-prose mark[data-hl-id][data-color="blue"] {
+  background-color: rgba(96, 165, 250, 0.32);
+}
+.reader-prose mark[data-hl-id][data-color="pink"] {
+  background-color: rgba(244, 114, 182, 0.32);
+}
+.reader-prose mark[data-hl-id][data-annotated="true"] {
+  border-bottom: 2px dotted currentColor;
+}
+.reader-prose mark[data-hl-id].is-flash {
+  animation: hl-flash 600ms ease-out;
+}
+@keyframes hl-flash {
+  0% {
+    background-color: rgba(250, 204, 21, 0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-prose mark[data-hl-id] {
+    transition: none;
+  }
+  .reader-prose mark[data-hl-id].is-flash {
+    animation: none;
+  }
+}

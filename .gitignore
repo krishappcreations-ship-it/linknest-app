@@ -1,0 +1,64 @@
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Env
+.env*
+!.env.example
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+*.pem
+
+# Playwright MCP artifacts (local smoke runs)
+/.playwright-mcp/
+
+# Local-only dev tooling (not part of the published project)
+/.claude/
+/.scratch/
+CLAUDE.md
+installedSkills.md
+Installledskills.md
+docs/handoffs/
+docs/agents/
+docs/superpowers/
+
+# local browser-smoke screenshots
+linknest-*.png
+.playwright-mcp/
+
+prod-after-add.png
+docs/reviews/

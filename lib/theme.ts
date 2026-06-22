@@ -37,8 +37,22 @@ export function resolveInitialTheme(): Theme {
 export function applyTheme(theme: Theme): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  // Suppress every element's color/background transition for one frame so the
+  // theme flips instantly instead of rippling through hundreds of
+  // `transition-colors` elements (the perceived toggle lag). Re-enable after the
+  // new variables have painted.
+  root.classList.add("theme-switching");
   if (theme === "light") root.dataset.theme = "light";
   else delete root.dataset.theme;
+  if (typeof window !== "undefined") {
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() =>
+        root.classList.remove("theme-switching")
+      )
+    );
+  } else {
+    root.classList.remove("theme-switching");
+  }
   try {
     window.localStorage.setItem(THEME_KEY, theme);
   } catch {

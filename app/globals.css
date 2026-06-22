@@ -13,6 +13,15 @@
   }
 }
 
+/* Instant theme swap: while lib/theme.ts is flipping data-theme, kill all
+ * transitions so colors don't ripple element-by-element (the toggle lag). */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 /* ---------- LinkNest Design System (Tailwind v4 CSS-first config) ----------
  * Single source of truth for color / typography / spacing tokens.
  * See ADR-005 (Design Principles) for rationale + anti-slop checklist.

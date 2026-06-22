@@ -49,6 +49,7 @@ next-env.d.ts
 # Local-only dev tooling (not part of the published project)
 /.claude/
 /.scratch/
+/.understand-anything/
 CLAUDE.md
 installedSkills.md
 Installledskills.md

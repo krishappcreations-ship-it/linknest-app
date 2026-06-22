@@ -46,7 +46,11 @@ export function FolderPicker({ value, onChange }: Props) {
         <Popover.Content
           align="start"
           sideOffset={4}
-          className="border-border bg-surface z-50 max-h-72 w-64 overflow-y-auto rounded-md border p-1 shadow-lg"
+          className="border-border bg-surface z-50 max-h-72 w-64 overflow-y-auto overscroll-contain rounded-md border p-1 shadow-lg"
+          // Radix sets touch-action that kills momentum scroll; restore it so the
+          // folder list can be flicked to the bottom on touch/trackpad.
+          style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+          onWheel={(e) => e.stopPropagation()}
         >
           <button
             type="button"

@@ -22,7 +22,7 @@ export function StatusScreen({ phase, onRetry }: StatusScreenProps) {
             chrome.tabs.create({
               url:
                 (import.meta.env.VITE_LINKNEST_URL as string) ||
-                "http://localhost:3000",
+                "https://linknest-inky.vercel.app",
             })
           }
         >
